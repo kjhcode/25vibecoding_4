@@ -102,11 +102,9 @@ if uploaded_file:
         pdf.cell(200, 10, txt="생성형 AI 교육 분석 리포트", ln=True, align="C")
         pdf.set_font("Arial", size=12)
         pdf.ln(10)
-        pdf.multi_cell(0, 10, f"""
-비교 항목: {metric}
+        pdf.multi_cell(0, 10, f"비교 항목: {metric}
 그래프 유형: {chart_type}
-생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-""").strftime('%Y-%m-%d %H:%M:%S')}")
+생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}").strftime('%Y-%m-%d %H:%M:%S')}")
 
         # 차트 이미지 저장 (단, 애니메이션 제외)
         if "animation_frame" not in fig.layout:
