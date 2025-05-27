@@ -91,6 +91,22 @@ if uploaded_file:
 
     st.plotly_chart(fig, use_container_width=True)
 
+    # 그래프 저장 및 다운로드
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("💾 그래프 저장")
+    save_chart = st.sidebar.button("현재 그래프 PNG로 저장")
+    if save_chart:
+        import io
+        import plotly.io as pio
+        buf = io.BytesIO()
+        pio.write_image(fig, buf, format="png")
+        st.sidebar.download_button(
+            label="📥 다운로드", 
+            data=buf.getvalue(),
+            file_name="chart.png",
+            mime="image/png"
+        )
+
     # 워드클라우드
     st.subheader("🗣️ 자유 의견 워드클라우드")
     opinion_text = " ".join(df_use["의견"].dropna().astype(str)).strip()
