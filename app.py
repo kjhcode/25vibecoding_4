@@ -27,52 +27,38 @@ uploaded_file = st.file_uploader("설문 응답 CSV 파일을 업로드하세요
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
 
+    st.sidebar.header("📊 시각화 옵션")
+    chart_type = st.sidebar.radio("그래프 유형 선택", ["막대그래프", "원형차트"])
+    metric = st.sidebar.selectbox("비교 항목 선택", ["유용성 점수", "신뢰도 점수"])
+
     st.subheader("📋 데이터 미리보기")
     st.dataframe(df.head())
 
-    # 필터: 사용 여부 '예'인 경우만 분석
     df_use = df[df["사용 여부"] == "예"].copy()
 
-    # 사용자 유형별 평균 유용성 점수
-    fig1 = px.bar(
-        df_use.groupby("사용자 유형")["유용성 점수"].mean().reset_index(),
-        x="사용자 유형",
-        y="유용성 점수",
-        title="사용자 유형별 평균 유용성 점수"
-    )
-    fig1.update_layout(
+    # 동적 그래프 생성
+    if chart_type == "막대그래프":
+        fig = px.bar(
+            df_use.groupby("사용자 유형")[metric].mean().reset_index(),
+            x="사용자 유형",
+            y=metric,
+            title=f"사용자 유형별 평균 {metric}"
+        )
+    else:
+        fig = px.pie(
+            df_use,
+            names="감정",
+            title="사용자 감정 분포"
+        )
+
+    fig.update_layout(
         xaxis_tickangle=0,
         yaxis=dict(tickfont=dict(size=14)),
         xaxis=dict(tickfont=dict(size=14)),
         margin=dict(l=30, r=30, t=50, b=30)
     )
 
-    # 사용자 유형별 평균 신뢰도 점수
-    fig2 = px.bar(
-        df_use.groupby("사용자 유형")["신뢰도 점수"].mean().reset_index(),
-        x="사용자 유형",
-        y="신뢰도 점수",
-        title="사용자 유형별 평균 신뢰도 점수"
-    )
-    fig2.update_layout(
-        xaxis_tickangle=0,
-        yaxis=dict(tickfont=dict(size=14)),
-        xaxis=dict(tickfont=dict(size=14)),
-        margin=dict(l=30, r=30, t=50, b=30)
-    )
-
-    # 감정 분포 파이차트
-    fig3 = px.pie(df_use, names="감정", title="사용자 감정 분포")
-    fig3.update_layout(margin=dict(t=40, b=20))
-
-    # 시각화 표시: 두 개씩 나눠서 보기 좋게 배치
-    col1, col2 = st.columns(2)
-    with col1:
-        st.plotly_chart(fig1, use_container_width=True)
-    with col2:
-        st.plotly_chart(fig2, use_container_width=True)
-
-    st.plotly_chart(fig3, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
 
     # 워드클라우드
     st.subheader("🗣️ 자유 의견 워드클라우드")
@@ -87,10 +73,10 @@ if uploaded_file:
                 background_color='white'
             ).generate(opinion_text)
 
-            fig, ax = plt.subplots(figsize=(10, 5))
+            fig_wc, ax = plt.subplots(figsize=(10, 5))
             ax.imshow(wc, interpolation='bilinear')
             ax.axis('off')
-            st.pyplot(fig)
+            st.pyplot(fig_wc)
         except Exception as e:
             st.error(f"워드클라우드 생성 오류: {e}")
     else:
