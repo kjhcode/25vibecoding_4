@@ -91,6 +91,44 @@ if uploaded_file:
 
     st.plotly_chart(fig, use_container_width=True)
 
+    # PDF 저장 기능
+    from fpdf import FPDF
+    from datetime import datetime
+    pdf_button = st.sidebar.button("📄 PDF 보고서 저장")
+    if pdf_button:
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=16)
+        pdf.cell(200, 10, txt="생성형 AI 교육 분석 리포트", ln=True, align="C")
+        pdf.set_font("Arial", size=12)
+        pdf.ln(10)
+        pdf.multi_cell(0, 10, f"비교 항목: {metric}
+그래프 유형: {chart_type}
+생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+        # 차트 이미지 저장 (단, 애니메이션 제외)
+        if "animation_frame" not in fig.layout:
+            import io
+            import plotly.io as pio
+            img_buf = io.BytesIO()
+            pio.write_image(fig, img_buf, format="png")
+            with open("chart_temp.png", "wb") as f:
+                f.write(img_buf.getvalue())
+            pdf.image("chart_temp.png", x=10, y=60, w=180)
+        else:
+            pdf.ln(20)
+            pdf.cell(0, 10, txt="애니메이션 그래프는 PDF에 포함되지 않습니다.", ln=True)
+
+        pdf_output_path = "ai_edu_report.pdf"
+        pdf.output(pdf_output_path)
+        with open(pdf_output_path, "rb") as f:
+            st.sidebar.download_button(
+                label="📥 PDF 다운로드",
+                data=f,
+                file_name=pdf_output_path,
+                mime="application/pdf"
+            )
+
     # 그래프 저장 및 다운로드
     st.sidebar.markdown("---")
     st.sidebar.subheader("💾 그래프 저장")
