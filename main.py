@@ -9,10 +9,10 @@ import urllib.request
 st.set_page_config(page_title="생성형 AI 교육 분석", layout="wide")
 st.title("📊 생성형 AI 도구의 교육 활용 분석 대시보드")
 
-# 나눔고딕 폰트 자동 다운로드 및 저장
-FONT_URL = "https://github.com/naver/nanumfont/blob/master/ttf/NanumGothic.ttf?raw=true"
+# 나눔고딕 폰트 대체 다운로드 링크 (구글 폰트의 NotoSansKR 사용)
+FONT_URL = "https://github.com/google/fonts/raw/main/ofl/notosanskr/NotoSansKR-Regular.ttf"
 FONT_DIR = "./fonts"
-FONT_PATH = os.path.join(FONT_DIR, "NanumGothic.ttf")
+FONT_PATH = os.path.join(FONT_DIR, "NotoSansKR-Regular.ttf")
 
 if not os.path.exists(FONT_PATH):
     os.makedirs(FONT_DIR, exist_ok=True)
