@@ -28,7 +28,7 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
 
     st.sidebar.header("📊 시각화 옵션")
-    chart_type = st.sidebar.radio("그래프 유형 선택", ["막대그래프", "원형차트"])
+    chart_type = st.sidebar.radio("그래프 유형 선택", ["막대그래프", "원형차트", "선그래프", "박스플롯"])
     metric = st.sidebar.selectbox("비교 항목 선택", ["유용성 점수", "신뢰도 점수"])
 
     st.subheader("📋 데이터 미리보기")
@@ -44,11 +44,27 @@ if uploaded_file:
             y=metric,
             title=f"사용자 유형별 평균 {metric}"
         )
-    else:
+    elif chart_type == "원형차트":
         fig = px.pie(
             df_use,
             names="감정",
             title="사용자 감정 분포"
+        )
+    elif chart_type == "선그래프":
+        fig = px.line(
+            df_use,
+            x="사용 빈도",
+            y=metric,
+            color="사용자 유형",
+            title=f"사용 빈도별 {metric} (선그래프)"
+        )
+    elif chart_type == "박스플롯":
+        fig = px.box(
+            df_use,
+            x="사용자 유형",
+            y=metric,
+            color="사용자 유형",
+            title=f"{metric} 분포 (박스플롯)"
         )
 
     fig.update_layout(
