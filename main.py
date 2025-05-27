@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
+import os
 
 st.set_page_config(page_title="생성형 AI 교육 분석", layout="wide")
 st.title("📊 생성형 AI 도구의 교육 활용 분석 대시보드")
@@ -65,8 +66,18 @@ if uploaded_file:
 
     if opinion_text:
         try:
+            # 폰트 경로 자동 탐색 또는 fallback
+            possible_fonts = [
+                "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                "/System/Library/Fonts/Supplemental/AppleGothic.ttf",
+                "/Library/Fonts/AppleGothic.ttf",
+                None  # 기본값 사용 (영문 폰트)
+            ]
+            font_path = next((fp for fp in possible_fonts if fp and os.path.exists(fp)), None)
+
             wc = WordCloud(
-                font_path="/usr/share/fonts/truetype/nanum/NanumGothic.ttf",  # 로컬 환경에 맞게 수정 필요
+                font_path=font_path,
                 width=800,
                 height=400,
                 background_color='white'
