@@ -4,9 +4,23 @@ import plotly.express as px
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import os
+import urllib.request
 
 st.set_page_config(page_title="생성형 AI 교육 분석", layout="wide")
 st.title("📊 생성형 AI 도구의 교육 활용 분석 대시보드")
+
+# 나눔고딕 폰트 자동 다운로드 및 저장
+FONT_URL = "https://github.com/naver/nanumfont/blob/master/ttf/NanumGothic.ttf?raw=true"
+FONT_DIR = "./fonts"
+FONT_PATH = os.path.join(FONT_DIR, "NanumGothic.ttf")
+
+if not os.path.exists(FONT_PATH):
+    os.makedirs(FONT_DIR, exist_ok=True)
+    try:
+        urllib.request.urlretrieve(FONT_URL, FONT_PATH)
+    except Exception as e:
+        st.warning(f"폰트 다운로드 실패: {e}")
+        FONT_PATH = None
 
 # 파일 업로드
 uploaded_file = st.file_uploader("설문 응답 CSV 파일을 업로드하세요", type=["csv"])
@@ -66,18 +80,8 @@ if uploaded_file:
 
     if opinion_text:
         try:
-            # 폰트 경로 자동 탐색 또는 fallback
-            possible_fonts = [
-                "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
-                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-                "/System/Library/Fonts/Supplemental/AppleGothic.ttf",
-                "/Library/Fonts/AppleGothic.ttf",
-                None  # 기본값 사용 (영문 폰트)
-            ]
-            font_path = next((fp for fp in possible_fonts if fp and os.path.exists(fp)), None)
-
             wc = WordCloud(
-                font_path=font_path,
+                font_path=FONT_PATH if FONT_PATH and os.path.exists(FONT_PATH) else None,
                 width=800,
                 height=400,
                 background_color='white'
