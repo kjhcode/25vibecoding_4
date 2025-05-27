@@ -29,7 +29,7 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
 
     st.sidebar.header("📊 시각화 옵션")
-    chart_type = st.sidebar.radio("그래프 유형 선택", ["막대그래프", "원형차트", "박스플롯", "히스토그램", "히트맵", "트리맵"])
+    chart_type = st.sidebar.radio("그래프 유형 선택", ["막대그래프", "원형차트", "박스플롯", "히스토그램", "히트맵", "트리맵", "애니메이션 막대그래프"])
     metric = st.sidebar.selectbox("비교 항목 선택", ["유용성 점수", "신뢰도 점수"])
 
     st.subheader("📋 데이터 미리보기")
@@ -72,6 +72,15 @@ if uploaded_file:
         fig = px.imshow(pivot, text_auto=True, color_continuous_scale="Blues", title=f"{metric} 히트맵")
     elif chart_type == "트리맵":
         fig = px.treemap(df_use, path=["사용자 유형", "감정"], values=metric, title=f"{metric} 기반 트리맵")
+    elif chart_type == "애니메이션 막대그래프":
+        fig = px.bar(
+            df_use,
+            x="사용자 유형",
+            y=metric,
+            animation_frame="사용 빈도",
+            color="사용자 유형",
+            title=f"사용 빈도에 따른 사용자 유형별 {metric} 변화 (애니메이션)"
+        )
 
     fig.update_layout(
         xaxis_tickangle=0,
