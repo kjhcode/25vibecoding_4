@@ -70,7 +70,8 @@ if uploaded_file:
                 font_path=FONT_PATH if FONT_PATH and os.path.exists(FONT_PATH) else None,
                 width=800,
                 height=400,
-                background_color='white'
+                background_color='white',
+                max_font_size=60
             ).generate(opinion_text)
 
             fig_wc, ax = plt.subplots(figsize=(10, 5))
