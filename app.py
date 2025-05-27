@@ -3,8 +3,6 @@ import pandas as pd
 import plotly.express as px
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
-import numpy as np
-from PIL import Image
 import os
 import urllib.request
 
@@ -68,20 +66,13 @@ if uploaded_file:
 
     if opinion_text:
         try:
-            # 마스크 이미지 (구름 모양 등 사용자 지정 가능)
-            mask = np.array(Image.new("RGB", (800, 400), (255, 255, 255)))
-
             wc = WordCloud(
                 font_path=FONT_PATH if FONT_PATH and os.path.exists(FONT_PATH) else None,
                 width=800,
                 height=400,
-                background_color=None,
-                mode="RGBA",
-                colormap="coolwarm",
-                max_font_size=50,
-                mask=mask,
-                contour_width=1,
-                contour_color='steelblue'
+                background_color='white',
+                colormap="Set2",
+                max_font_size=60
             ).generate(opinion_text)
 
             fig_wc, ax = plt.subplots(figsize=(10, 5))
