@@ -9,10 +9,10 @@ import urllib.request
 st.set_page_config(page_title="생성형 AI 교육 분석", layout="wide")
 st.title("📊 생성형 AI 도구의 교육 활용 분석 대시보드")
 
-# 대체 가능한 한글 폰트 URL (공식 구글 CDN 활용)
-FONT_URL = "https://github.com/naver/nanumfont/blob/master/ttf/NanumGothic.ttf?raw=true"
+# 대체 가능한 한글 폰트 URL (구글 CDN에서 직접 제공하는 실제 경로)
+FONT_URL = "https://github.com/google/fonts/raw/main/ofl/nanumgothic/NanumGothic-Regular.ttf"
 FONT_DIR = "./fonts"
-FONT_PATH = os.path.join(FONT_DIR, "NanumGothic.ttf")
+FONT_PATH = os.path.join(FONT_DIR, "NanumGothic-Regular.ttf")
 
 if not os.path.exists(FONT_PATH):
     os.makedirs(FONT_DIR, exist_ok=True)
