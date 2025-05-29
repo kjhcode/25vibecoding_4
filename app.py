@@ -6,15 +6,16 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import os
 import urllib.request
+from datetime import datetime
+from fpdf import FPDF
 
 st.set_page_config(page_title="생성형 AI 교육 분석", layout="wide")
 st.title("📊 생성형 AI 도구의 교육 활용 분석 대시보드")
 
-# 대체 가능한 한글 폰트 URL (구글 CDN에서 직접 제공하는 실제 경로)
+# 폰트 설정
 FONT_URL = "https://github.com/google/fonts/raw/main/ofl/nanumgothic/NanumGothic-Regular.ttf"
 FONT_DIR = "./fonts"
 FONT_PATH = os.path.join(FONT_DIR, "NanumGothic-Regular.ttf")
-
 if not os.path.exists(FONT_PATH):
     os.makedirs(FONT_DIR, exist_ok=True)
     try:
@@ -28,13 +29,7 @@ uploaded_file = st.file_uploader("설문 응답 CSV 파일을 업로드하세요
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
 
-    # 📌 학년 필터링 기능 추가
-    if "학년" in df.columns:
-        selected_grades = st.sidebar.multiselect("학년 선택", sorted(df["학년"].dropna().unique()))
-        if selected_grades:
-            df = df[df["학년"].isin(selected_grades)]
-
-    # 📌 학년 필터링 기능 추가
+    # 학년 필터링
     if "학년" in df.columns:
         selected_grades = st.sidebar.multiselect("학년 선택", sorted(df["학년"].dropna().unique()))
         if selected_grades:
@@ -49,87 +44,36 @@ if uploaded_file:
 
     df_use = df[df["사용 여부"] == "예"].copy()
 
-    # 동적 그래프 생성
+    # 시각화 생성
     if chart_type == "막대그래프":
-        fig = px.bar(
-            df_use.groupby("사용자 유형")[metric].mean().reset_index(),
-            x="사용자 유형",
-            y=metric,
-            title=f"사용자 유형별 평균 {metric}"
-        )
+        fig = px.bar(df_use.groupby("사용자 유형")[metric].mean().reset_index(), x="사용자 유형", y=metric)
     elif chart_type == "원형차트":
-        fig = px.pie(
-            df_use,
-            names="감정",
-            title="사용자 감정 분포"
-        )
+        fig = px.pie(df_use, names="감정")
     elif chart_type == "박스플롯":
-        fig = px.box(
-            df_use,
-            x="사용자 유형",
-            y=metric,
-            color="사용자 유형",
-            title=f"{metric} 분포 (박스플롯)"
-        )
+        fig = px.box(df_use, x="사용자 유형", y=metric, color="사용자 유형")
     elif chart_type == "히스토그램":
-        fig = px.histogram(
-            df_use,
-            x=metric,
-            color="사용자 유형",
-            barmode="overlay",
-            title=f"{metric} 분포 (히스토그램)"
-        )
+        fig = px.histogram(df_use, x=metric, color="사용자 유형", barmode="overlay")
     elif chart_type == "히트맵":
         pivot = df_use.pivot_table(index="사용자 유형", columns="사용 빈도", values=metric, aggfunc="mean")
-        fig = px.imshow(pivot, text_auto=True, color_continuous_scale="Blues", title=f"{metric} 히트맵")
+        fig = px.imshow(pivot, text_auto=True)
     elif chart_type == "트리맵":
-        fig = px.treemap(df_use, path=["사용자 유형", "감정"], values=metric, title=f"{metric} 기반 트리맵")
+        fig = px.treemap(df_use, path=["사용자 유형", "감정"], values=metric)
     elif chart_type == "애니메이션 막대그래프":
-        fig = px.bar(
-            df_use,
-            x="사용자 유형",
-            y=metric,
-            animation_frame="사용 빈도",
-            color="사용자 유형",
-            title=f"사용 빈도에 따른 사용자 유형별 {metric} 변화 (애니메이션)"
-        )
+        fig = px.bar(df_use, x="사용자 유형", y=metric, animation_frame="사용 빈도", color="사용자 유형")
 
-    fig.update_layout(
-        xaxis_tickangle=0,
-        yaxis=dict(tickfont=dict(size=14)),
-        xaxis=dict(tickfont=dict(size=14)),
-        margin=dict(l=30, r=30, t=50, b=30)
-    )
-
+    fig.update_layout(margin=dict(l=30, r=30, t=50, b=30))
     st.plotly_chart(fig, use_container_width=True)
 
-    # 📊 감정별 평균 점수 시각화
+    # 감정별 및 빈도별 추가 시각화
     st.subheader(f"감정별 평균 {metric}")
-    fig_emotion = px.bar(
-        df_use.groupby("감정")[metric].mean().reset_index(),
-        x="감정",
-        y=metric,
-        color="감정",
-        title=f"감정별 평균 {metric}",
-        text_auto=True
-    )
+    fig_emotion = px.bar(df_use.groupby("감정")[metric].mean().reset_index(), x="감정", y=metric, color="감정")
     st.plotly_chart(fig_emotion, use_container_width=True)
 
-    # 📊 사용 빈도별 평균 점수 시각화
     st.subheader(f"사용 빈도별 평균 {metric}")
-    fig_freq = px.bar(
-        df_use.groupby("사용 빈도")[metric].mean().reset_index(),
-        x="사용 빈도",
-        y=metric,
-        color="사용 빈도",
-        title=f"사용 빈도별 평균 {metric}",
-        text_auto=True
-    )
+    fig_freq = px.bar(df_use.groupby("사용 빈도")[metric].mean().reset_index(), x="사용 빈도", y=metric, color="사용 빈도")
     st.plotly_chart(fig_freq, use_container_width=True)
 
-    # PDF 저장 기능
-    from fpdf import FPDF
-    from datetime import datetime
+    # PDF 저장 버튼
     pdf_button = st.sidebar.button("📄 PDF 보고서 저장")
     if pdf_button:
         pdf = FPDF()
@@ -143,7 +87,7 @@ if uploaded_file:
 생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 """)
 
-        # 차트 이미지 저장 (단, 애니메이션 제외)
+        # 이미지 저장 (애니메이션 제외)
         if "animation_frame" not in fig.layout:
             import io
             import plotly.io as pio
@@ -156,47 +100,21 @@ if uploaded_file:
             pdf.ln(20)
             pdf.cell(0, 10, txt="애니메이션 그래프는 PDF에 포함되지 않습니다.", ln=True)
 
-        pdf_output_path = "ai_edu_report.pdf"
-        pdf.output(pdf_output_path)
-        with open(pdf_output_path, "rb") as f:
-            st.sidebar.download_button(
-                label="📥 PDF 다운로드",
-                data=f,
-                file_name=pdf_output_path,
-                mime="application/pdf"
-            )
-
-    # 그래프 저장 및 다운로드
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("💾 그래프 저장")
-    save_chart = st.sidebar.button("현재 그래프 PNG로 저장")
-    if save_chart:
-        import io
-        import plotly.io as pio
-        buf = io.BytesIO()
-        pio.write_image(fig, buf, format="png")
-        st.sidebar.download_button(
-            label="📥 다운로드", 
-            data=buf.getvalue(),
-            file_name="chart.png",
-            mime="image/png"
-        )
+        output_path = "ai_edu_report.pdf"
+        pdf.output(output_path)
+        with open(output_path, "rb") as f:
+            st.sidebar.download_button("📥 PDF 다운로드", f, file_name=output_path, mime="application/pdf")
 
     # 워드클라우드
     st.subheader("🗣️ 자유 의견 워드클라우드")
     opinion_text = " ".join(df_use["의견"].dropna().astype(str)).strip()
-
     if opinion_text:
         try:
             wc = WordCloud(
-                font_path=FONT_PATH if FONT_PATH and os.path.exists(FONT_PATH) else None,
-                width=800,
-                height=400,
-                background_color='white',
-                colormap="Set2",
-                max_font_size=60
+                font_path=FONT_PATH if os.path.exists(FONT_PATH) else None,
+                width=800, height=400, background_color='white',
+                colormap="Set2", max_font_size=60
             ).generate(opinion_text)
-
             fig_wc, ax = plt.subplots(figsize=(10, 5))
             ax.imshow(wc, interpolation='bilinear')
             ax.axis('off')
