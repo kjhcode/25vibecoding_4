@@ -8,14 +8,16 @@ import os
 import urllib.request
 from datetime import datetime
 from fpdf import FPDF
+import io
+import plotly.io as pio
 
 st.set_page_config(page_title="생성형 AI 교육 분석", layout="wide")
 st.title("📊 생성형 AI 도구의 교육 활용 분석 대시보드")
 
-# 폰트 설정
 FONT_URL = "https://github.com/google/fonts/raw/main/ofl/nanumgothic/NanumGothic-Regular.ttf"
 FONT_DIR = "./fonts"
 FONT_PATH = os.path.join(FONT_DIR, "NanumGothic-Regular.ttf")
+
 if not os.path.exists(FONT_PATH):
     os.makedirs(FONT_DIR, exist_ok=True)
     try:
@@ -24,16 +26,15 @@ if not os.path.exists(FONT_PATH):
         st.warning(f"폰트 다운로드 실패: {e}")
         FONT_PATH = None
 
-# 파일 업로드
 uploaded_file = st.file_uploader("설문 응답 CSV 파일을 업로드하세요", type=["csv"])
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
 
-    # 학년 필터링
-    if "학년" in df.columns:
-        selected_grades = st.sidebar.multiselect("학년 선택", sorted(df["학년"].dropna().unique()))
+    grade_col = next((col for col in df.columns if "학년" in col), None)
+    if grade_col:
+        selected_grades = st.sidebar.multiselect("학년 선택", sorted(df[grade_col].dropna().unique()))
         if selected_grades:
-            df = df[df["학년"].isin(selected_grades)]
+            df = df[df[grade_col].isin(selected_grades)]
 
     st.sidebar.header("📊 시각화 옵션")
     chart_type = st.sidebar.radio("그래프 유형 선택", ["막대그래프", "원형차트", "박스플롯", "히스토그램", "히트맵", "트리맵", "애니메이션 막대그래프"])
@@ -44,7 +45,6 @@ if uploaded_file:
 
     df_use = df[df["사용 여부"] == "예"].copy()
 
-    # 시각화 생성
     if chart_type == "막대그래프":
         fig = px.bar(df_use.groupby("사용자 유형")[metric].mean().reset_index(), x="사용자 유형", y=metric)
     elif chart_type == "원형차트":
@@ -64,7 +64,6 @@ if uploaded_file:
     fig.update_layout(margin=dict(l=30, r=30, t=50, b=30))
     st.plotly_chart(fig, use_container_width=True)
 
-    # 감정별 및 빈도별 추가 시각화
     st.subheader(f"감정별 평균 {metric}")
     fig_emotion = px.bar(df_use.groupby("감정")[metric].mean().reset_index(), x="감정", y=metric, color="감정")
     st.plotly_chart(fig_emotion, use_container_width=True)
@@ -73,7 +72,6 @@ if uploaded_file:
     fig_freq = px.bar(df_use.groupby("사용 빈도")[metric].mean().reset_index(), x="사용 빈도", y=metric, color="사용 빈도")
     st.plotly_chart(fig_freq, use_container_width=True)
 
-    # PDF 저장 버튼
     pdf_button = st.sidebar.button("📄 PDF 보고서 저장")
     if pdf_button:
         pdf = FPDF()
@@ -86,24 +84,8 @@ if uploaded_file:
 그래프 유형: {chart_type}
 생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 """)
-        
-# 📥 Excel 리포트 저장 기능
-import io
-if st.sidebar.button("📥 Excel 리포트 다운로드"):
-    excel_buf = io.BytesIO()
-    with pd.ExcelWriter(excel_buf, engine='xlsxwriter') as writer:
-        df_use.to_excel(writer, index=False, sheet_name='분석결과')
-    st.sidebar.download_button(
-        label="📄 Excel 다운로드",
-        data=excel_buf.getvalue(),
-        file_name="ai_edu_report.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
 
-        # 이미지 저장 (애니메이션 제외)
         if "animation_frame" not in fig.layout:
-            import io
-            import plotly.io as pio
             img_buf = io.BytesIO()
             pio.write_image(fig, img_buf, format="png")
             with open("chart_temp.png", "wb") as f:
@@ -118,7 +100,17 @@ if st.sidebar.button("📥 Excel 리포트 다운로드"):
         with open(output_path, "rb") as f:
             st.sidebar.download_button("📥 PDF 다운로드", f, file_name=output_path, mime="application/pdf")
 
-    # 워드클라우드
+    if st.sidebar.button("📥 Excel 리포트 다운로드"):
+        excel_buf = io.BytesIO()
+        with pd.ExcelWriter(excel_buf, engine='xlsxwriter') as writer:
+            df_use.to_excel(writer, index=False, sheet_name='분석결과')
+        st.sidebar.download_button(
+            label="📄 Excel 다운로드",
+            data=excel_buf.getvalue(),
+            file_name="ai_edu_report.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
     st.subheader("🗣️ 자유 의견 워드클라우드")
     opinion_text = " ".join(df_use["의견"].dropna().astype(str)).strip()
     if opinion_text:
