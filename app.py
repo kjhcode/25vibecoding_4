@@ -26,7 +26,13 @@ if not os.path.exists(FONT_PATH):
 # 파일 업로드
 uploaded_file = st.file_uploader("설문 응답 CSV 파일을 업로드하세요", type=["csv"])
 if uploaded_file:
-    df = pd.read_csv(uploaded_file)
+        df = pd.read_csv(uploaded_file)
+
+    # 📌 학년 필터링 기능 추가
+    if "학년" in df.columns:
+        selected_grades = st.sidebar.multiselect("학년 선택", sorted(df["학년"].dropna().unique()))
+        if selected_grades:
+            df = df[df["학년"].isin(selected_grades)]
 
     st.sidebar.header("📊 시각화 옵션")
     chart_type = st.sidebar.radio("그래프 유형 선택", ["막대그래프", "원형차트", "박스플롯", "히스토그램", "히트맵", "트리맵", "애니메이션 막대그래프"])
@@ -129,7 +135,7 @@ if uploaded_file:
         pdf.multi_cell(0, 10, f"""비교 항목: {metric}
 그래프 유형: {chart_type}
 생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-""")
+""")").strftime('%Y-%m-%d %H:%M:%S')}")
 
         # 차트 이미지 저장 (단, 애니메이션 제외)
         if "animation_frame" not in fig.layout:
