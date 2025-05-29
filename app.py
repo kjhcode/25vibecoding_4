@@ -84,12 +84,13 @@ if uploaded_file:
         top_group = group_summary.sort_values(by=metric, ascending=False).iloc[0]
 
         st.markdown(f"""
-        👥 **응답자 총 수**: {len(df)}명
-        ✅ **분석 대상 수** (사용 여부 "예"): {len(df_use)}명
-        📊 **전체 평균 {metric}**: {avg_score:.2f}
-        🏆 **가장 높은 평균 {metric} 사용자 유형**: {top_group['사용자 유형']} ({top_group[metric]:.2f})
-        😊 **가장 많이 선택된 감정**: {most_common_emotion}
-        """)
+
+이번 설문에는 총 **{len(df)}명**이 참여했으며, 이 중 생성형 AI 도구를 실제로 사용해본 응답자는 **{len(df_use)}명**입니다. 전체 평균 **{metric}**은 **{avg_score:.2f}점**으로 나타났습니다.
+
+가장 높은 평균 점수를 기록한 사용자 유형은 **{top_group['사용자 유형']}**로, 이 그룹은 평균 **{top_group[metric]:.2f}점**을 기록했습니다. 또한, 전체적으로 가장 많이 표현된 감정은 **{most_common_emotion}**이었습니다.
+
+이러한 결과는 사용자 경험과 감정이 생성형 AI 도구 활용에 어떤 영향을 미치는지를 보여줍니다. 자세한 수치는 아래 통계를 참고하세요.
+""")
 
         with st.expander("📄 상세 통계 보기"):
             st.markdown("**사용자 유형별 평균:**")
@@ -144,7 +145,7 @@ if uploaded_file:
 
     st.subheader("🗣️ 자유 의견 워드클라우드")
     opinion_text = " ".join(df_use["의견"].dropna().astype(str)).strip()
-    if opinion_text:
+    if opinion_text and len(opinion_text.split()) >= 3:
         try:
             wc = WordCloud(
                 font_path=FONT_PATH if os.path.exists(FONT_PATH) else None,
@@ -158,6 +159,6 @@ if uploaded_file:
         except Exception as e:
             st.error(f"워드클라우드 생성 오류: {e}")
     else:
-        st.info("의견 텍스트가 없어 워드클라우드를 생성할 수 없습니다.")
+        st.info("워드클라우드를 생성할 수 있는 충분한 의견 텍스트가 없습니다.")
 else:
     st.info("CSV 파일을 업로드하면 분석이 시작됩니다.")
