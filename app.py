@@ -129,7 +129,7 @@ if uploaded_file:
         pdf.multi_cell(0, 10, f"""비교 항목: {metric}
 그래프 유형: {chart_type}
 생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-""")").strftime('%Y-%m-%d %H:%M:%S')}")
+""")
 
         # 차트 이미지 저장 (단, 애니메이션 제외)
         if "animation_frame" not in fig.layout:
