@@ -73,22 +73,24 @@ if uploaded_file:
     st.plotly_chart(fig_freq, use_container_width=True)
 
     # 🧠 요약 자동 생성
-    st.subheader("🧠 설문 응답 요약")
-    try:
-        summary_text = f"""
-        총 응답 수: {len(df)}명
-        사용한 응답 수: {len(df_use)}명
-        평균 {metric}: {df_use[metric].mean():.2f}
+    # 🧠 요약 자동 생성
+st.subheader("🧠 설문 응답 요약")
+try:
+    summary_lines = [
+        f"**총 응답 수:** {len(df)}명",
+        f"**사용한 응답 수:** {len(df_use)}명",
+        f"**평균 {metric}:** {df_use[metric].mean():.2f}",
+        "",
+        "### 사용자 유형별 평균",
+        df_use.groupby("사용자 유형")[metric].mean().to_markdown(),
+        "",
+        "### 감정 분포",
+        df_use["감정"].value_counts().to_markdown()
+    ]
+    st.markdown("\n".join(summary_lines))
+except Exception as e:
+    st.warning(f"요약 생성 중 오류 발생: {e}")
 
-        사용자 유형별 평균:
-        """
-        summary_text += df_use.groupby("사용자 유형")[metric].mean().to_string()
-        summary_text += "\n\n감정 분포:\n"
-        summary_text += df_use["감정"].value_counts().to_string()
-
-        st.code(summary_text, language="markdown")
-    except Exception as e:
-        st.warning(f"요약 생성 중 오류 발생: {e}")
 
     pdf_button = st.sidebar.button("📄 PDF 보고서 저장")
     if pdf_button:
