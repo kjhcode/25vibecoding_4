@@ -79,18 +79,26 @@ if uploaded_file:
         emotion_counts = df_use["감정"].value_counts().reset_index()
         emotion_counts.columns = ["감정", "응답 수"]
 
-        summary_text = f"""
-**총 응답 수**: {len(df)}명  
-**사용한 응답 수**: {len(df_use)}명  
-**평균 {metric}**: {df_use[metric].mean():.2f}
+        avg_score = df_use[metric].mean()
+        most_common_emotion = emotion_counts.iloc[0]['감정'] if not emotion_counts.empty else "정보 없음"
+        top_group = group_summary.sort_values(by=metric, ascending=False).iloc[0]
 
-**사용자 유형별 평균**
-{group_summary.to_string(index=False)}
+        st.markdown(f"""
+        👥 **응답자 총 수**: {len(df)}명
+        ✅ **분석 대상 수** (사용 여부 "예"): {len(df_use)}명
+        📊 **전체 평균 {metric}**: {avg_score:.2f}
+        🏆 **가장 높은 평균 {metric} 사용자 유형**: {top_group['사용자 유형']} ({top_group[metric]:.2f})
+        😊 **가장 많이 선택된 감정**: {most_common_emotion}
+        """)
 
-**감정 분포**
-{emotion_counts.to_string(index=False)}
-"""
-        st.markdown(summary_text)
+        with st.expander("📄 상세 통계 보기"):
+            st.markdown("**사용자 유형별 평균:**")
+            st.dataframe(group_summary)
+            st.markdown("**감정 분포:**")
+            st.dataframe(emotion_counts)
+
+    except Exception as e:
+        st.warning(f"요약 생성 중 오류 발생: {e}")
 
     except Exception as e:
         st.warning(f"요약 생성 중 오류 발생: {e}")
