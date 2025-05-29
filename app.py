@@ -26,7 +26,13 @@ if not os.path.exists(FONT_PATH):
 # 파일 업로드
 uploaded_file = st.file_uploader("설문 응답 CSV 파일을 업로드하세요", type=["csv"])
 if uploaded_file:
-        df = pd.read_csv(uploaded_file)
+    df = pd.read_csv(uploaded_file)
+
+    # 📌 학년 필터링 기능 추가
+    if "학년" in df.columns:
+        selected_grades = st.sidebar.multiselect("학년 선택", sorted(df["학년"].dropna().unique()))
+        if selected_grades:
+            df = df[df["학년"].isin(selected_grades)]
 
     # 📌 학년 필터링 기능 추가
     if "학년" in df.columns:
