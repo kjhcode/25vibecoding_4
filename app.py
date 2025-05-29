@@ -91,6 +91,30 @@ if uploaded_file:
 
     st.plotly_chart(fig, use_container_width=True)
 
+    # 📊 감정별 평균 점수 시각화
+    st.subheader(f"감정별 평균 {metric}")
+    fig_emotion = px.bar(
+        df_use.groupby("감정")[metric].mean().reset_index(),
+        x="감정",
+        y=metric,
+        color="감정",
+        title=f"감정별 평균 {metric}",
+        text_auto=True
+    )
+    st.plotly_chart(fig_emotion, use_container_width=True)
+
+    # 📊 사용 빈도별 평균 점수 시각화
+    st.subheader(f"사용 빈도별 평균 {metric}")
+    fig_freq = px.bar(
+        df_use.groupby("사용 빈도")[metric].mean().reset_index(),
+        x="사용 빈도",
+        y=metric,
+        color="사용 빈도",
+        title=f"사용 빈도별 평균 {metric}",
+        text_auto=True
+    )
+    st.plotly_chart(fig_freq, use_container_width=True)
+
     # PDF 저장 기능
     from fpdf import FPDF
     from datetime import datetime
@@ -102,10 +126,10 @@ if uploaded_file:
         pdf.cell(200, 10, txt="생성형 AI 교육 분석 리포트", ln=True, align="C")
         pdf.set_font("Arial", size=12)
         pdf.ln(10)
-        pdf.multi_cell(0, 10, f"""비교 항목: {metric}
+        pdf.multi_cell(0, 10, f"비교 항목: {metric}
 그래프 유형: {chart_type}
-생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-""")
+생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}").strftime('%Y-%m-%d %H:%M:%S')}")
+
         # 차트 이미지 저장 (단, 애니메이션 제외)
         if "animation_frame" not in fig.layout:
             import io
