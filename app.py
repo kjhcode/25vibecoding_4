@@ -86,6 +86,19 @@ if uploaded_file:
 그래프 유형: {chart_type}
 생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 """)
+        
+# 📥 Excel 리포트 저장 기능
+import io
+if st.sidebar.button("📥 Excel 리포트 다운로드"):
+    excel_buf = io.BytesIO()
+    with pd.ExcelWriter(excel_buf, engine='xlsxwriter') as writer:
+        df_use.to_excel(writer, index=False, sheet_name='분석결과')
+    st.sidebar.download_button(
+        label="📄 Excel 다운로드",
+        data=excel_buf.getvalue(),
+        file_name="ai_edu_report.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
         # 이미지 저장 (애니메이션 제외)
         if "animation_frame" not in fig.layout:
