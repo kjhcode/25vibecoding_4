@@ -4,3 +4,4 @@ plotly
 wordcloud
 matplotlib
 kaleido
+fpdf
